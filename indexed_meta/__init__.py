@@ -1,17 +1,19 @@
 
 # TODO(pbz): Prevent regular instantiation with __init__ (List[3] vs List ...)
 
-class IndexedMeta(type):
+class IndexedMetaclass(type):
     """
     Allows classes to be specialized with a parameter that is unique to that
     specific class object.
+
+    ! Parameter must be hashable
     """
 
-    # Non-specialized base classes (Arr vs Arr[length])
+    # Non-specialized base classes (Arr, Str, Vec)
     tracked_base_types: dict[str, tuple[list[type]], dict[str, object]] = {}
 
     # Specializations have to be tracked separately because there could be many
-    # of them (Arr[1], Arr[2], Arr[3])
+    # of them (Arr[1], Str[1], Vec[1])
     tracked_base_type_specializations: dict[tuple[type, object], type] = {}
 
     def __new__(cls, name, bases, dict_):
@@ -37,7 +39,7 @@ class IndexedMeta(type):
         if lookup in self.tracked_base_types:
             return self.tracked_base_types[lookup]
 
-        bases, dict_ = self.tracked_types[self.__name__]
+        bases, dict_ = self.tracked_base_types[self.__name__]
 
         # Return a newly constructed class object modified with the parameter
         new_class = super().__new__(
@@ -56,6 +58,19 @@ class IndexedMeta(type):
 
     def __str__(self):
         return f'{self.__name__}[{getattr(self, "param", "")}]'
+
+    def __repr__(self):
+        return str(self)
+
+    def __format__(self, _format):
+        return str(self)
+
+
+class IndexedClass(metaclass=IndexedMetaclass):
+    def __str__(self):
+        return (
+            f'<{type(self).__module__}.{type(self)} object at {id(self):#018X}>'
+        )
 
     def __repr__(self):
         return str(self)

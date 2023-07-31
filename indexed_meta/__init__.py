@@ -1,27 +1,43 @@
 
 # TODO(pbz): Prevent regular instantiation with __init__ (List[3] vs List ...)
 
+PARAM_NAME = '__param__'
+
 class IndexedMetaclass(type):
     """
     Allows classes to be specialized with a parameter that is unique to that
     specific class object.
 
     ! Parameter must be hashable
+
+    Not specifying/tracking a parameter defaults to tracking `None`. This means
+    that `SomeType == SomeType[None]`.
     """
 
-    # Non-specialized base classes (Arr, Str, Vec)
-    tracked_base_types: dict[str, tuple[list[type]], dict[str, object]] = {}
+    # Non-specialized base classes (Arr, Str, Vec).
+    # The data to construct the class itself is stored so that specializations
+    # can add the tracked parameter. These are not useable types but the
+    # constituent parts of a given type.
+    tracked_base_types: dict[str, tuple[list[type], dict[str, object]]] = {}
 
     # Specializations have to be tracked separately because there could be many
-    # of them (Arr[1], Str[1], Vec[1])
+    # of them (Arr[1], Str[1], Vec[1]). These are instantiated, usable, and
+    # specialized types featuring a tracked parameter.
     tracked_base_type_specializations: dict[tuple[type, object], type] = {}
 
     def __new__(cls, name, bases, dict_):
         # Register the base type when it is defined using `class` keyword
         cls.tracked_base_types[name] = bases, dict_
 
-        # Return the newly constructed class object unmodified
-        return super().__new__(cls, name, bases, dict_)
+        # Newly defined classes with `class` keyword are equivalent to:
+        # `TheType[None]`.
+        # The temporary type is exactly equivalent to the raw class definition
+        # in Python source but it is discarded here since non-specialized types
+        # are tracked as having a `None` specialized parameter.
+        temporary_type = super().__new__(cls, name, bases, dict_)
+
+        # Calls `IndexedMetaclass.__getitem__`
+        return temporary_type[None]
 
     def __getitem__(self, param):
         """
@@ -36,8 +52,8 @@ class IndexedMetaclass(type):
         lookup = self.__name__, param
 
         # Don't keep constructing new types from the same parameter hash
-        if lookup in self.tracked_base_types:
-            return self.tracked_base_types[lookup]
+        if lookup in self.tracked_base_type_specializations:
+            return self.tracked_base_type_specializations[lookup]
 
         bases, dict_ = self.tracked_base_types[self.__name__]
 
@@ -48,16 +64,17 @@ class IndexedMetaclass(type):
             bases,
 
             # Modifies the class definition to include the parameter
-            dict(param=param, **dict_)
+            {PARAM_NAME: param} | dict_
         )
 
         # Cache the new definition
-        self.tracked_base_types[lookup] = new_class
+        self.tracked_base_type_specializations[lookup] = new_class
 
         return new_class
 
     def __str__(self):
-        return f'{self.__name__}[{getattr(self, "param", "")}]'
+        param = getattr(self, PARAM_NAME)
+        return f'{self.__name__}[{"" if param is None else param}]'
 
     def __repr__(self):
         return str(self)

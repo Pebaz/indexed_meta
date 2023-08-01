@@ -49,3 +49,21 @@ def test_no_aliasing():
     assert A1 != A2, (
         'Classes with same name from different scopes should be different'
     )
+
+
+def test_caching():
+    class A(metaclass=IndexedMetaclass):
+        ""
+
+    alias_to_original = A
+
+    class A(IndexedClass):
+        pass
+
+    assert alias_to_original == A, (
+        'IndexedClass & IndexedMetaclass classes should refer to same type'
+    )
+
+    assert str(A) ==  str(alias_to_original), (
+        'IndexedClass & IndexedMetaclass classes should refer to same type'
+    )

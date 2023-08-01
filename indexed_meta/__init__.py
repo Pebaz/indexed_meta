@@ -87,6 +87,31 @@ class IndexedMetaclass(type):
 
 
 class IndexedClass(metaclass=IndexedMetaclass):
+    """
+    Example Usage:
+
+    >>> class Vec(metaclass=IndexedMetaclass):
+    ...     "This is equivalent to below"
+
+    >>> class Vec:
+    ...     "This is exactly the same as above"
+    ...     __metaclass__ = IndexedMetaclass
+
+    >>> class Vec(IndexedClass):
+    ...     "Has some conveniences, but otherwise is identical to the above"
+
+    >>> Vec[1] == Vec[1]
+    True
+
+    >>> Vec.__param__
+
+    >>> Vec[1].__param__
+    1
+
+    >>> Vec[1, 2, 3].__param__
+    (1, 2, 3)
+    """
+
     def __str__(self):
         return (
             f'<{type(self).__module__}.{type(self)} object at {id(self):#018X}>'

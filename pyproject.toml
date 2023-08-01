@@ -2,6 +2,7 @@
 name = "indexed-meta"
 version = "0.0.1"
 description = ""
+authors = ["pebaz <pebazium@gmail.com>"]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "indexed_meta"}]

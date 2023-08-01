@@ -26,8 +26,10 @@ class IndexedMetaclass(type):
     tracked_base_type_specializations: dict[tuple[type, object], type] = {}
 
     def __new__(cls, name, bases, dict_):
+        qualified_name = f'{dict_["__module__"]}.{dict_["__qualname__"]}'
+
         # Register the base type when it is defined using `class` keyword
-        cls.tracked_base_types[name] = bases, dict_
+        cls.tracked_base_types[qualified_name] = bases, dict_
 
         # Newly defined classes with `class` keyword are equivalent to:
         # `TheType[None]`.
@@ -49,13 +51,14 @@ class IndexedMetaclass(type):
 
         assert hasattr(param, '__hash__'), f'Unhashable type {type(param)}'
 
-        lookup = self.__name__, param
+        qualified_name = f'{self.__module__}.{self.__qualname__}'
+        lookup = qualified_name, param
 
         # Don't keep constructing new types from the same parameter hash
         if lookup in self.tracked_base_type_specializations:
             return self.tracked_base_type_specializations[lookup]
 
-        bases, dict_ = self.tracked_base_types[self.__name__]
+        bases, dict_ = self.tracked_base_types[qualified_name]
 
         # Return a newly constructed class object modified with the parameter
         new_class = super().__new__(
@@ -74,7 +77,7 @@ class IndexedMetaclass(type):
 
     def __str__(self):
         param = getattr(self, PARAM_NAME)
-        return f'{self.__name__}[{"" if param is None else param}]'
+        return f'{self.__qualname__}[{"" if param is None else param}]'
 
     def __repr__(self):
         return str(self)

@@ -2,7 +2,6 @@
 name = "indexed-meta"
 version = "0.1.0"
 description = ""
-authors = ["Your Name <you@example.com>"]
 license = "MIT"
 readme = "README.md"
 packages = [{include = "indexed_meta"}]

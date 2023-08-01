@@ -1,5 +1,6 @@
 from indexed_meta import IndexedMetaclass, IndexedClass
 
+
 def test_class_registration():
     class Vec:
         assert "Verify metaclass variable can be specified in class body"

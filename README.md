@@ -21,4 +21,14 @@ v1 = Vec[3]()
 v1.show()  # Prints `3`
 
 Vec[1], Vec[2], Vec[3], Vec[1, 2, 3], Vec[frozenset([1, 2, 3])]
+
+# It's possible to override the default __param__ of None by inheriting from a
+# specialized class:
+class Vec(metaclass=IndexedMetaclass):
+    ...
+
+class Vec4(Vec[4]):
+    ...
+
+assert Vec4.__param__ == 4  # Normally it would be `None`
 ```

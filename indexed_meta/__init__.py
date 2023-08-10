@@ -1,6 +1,3 @@
-
-# TODO(pbz): Prevent regular instantiation with __init__ (List[3] vs List ...)
-
 PARAM_NAME = '__param__'
 
 class IndexedMetaclass(type):
@@ -45,7 +42,7 @@ class IndexedMetaclass(type):
         for base in bases:
             for base_class in reversed(base.mro()):
                 if isinstance(base_class, IndexedMetaclass):
-                    default_param = base.__param__
+                    default_param = getattr(base, PARAM_NAME)
 
         # Calls `IndexedMetaclass.__getitem__`
         return temporary_type[default_param]

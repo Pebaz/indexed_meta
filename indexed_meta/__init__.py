@@ -38,8 +38,17 @@ class IndexedMetaclass(type):
         # are tracked as having a `None` specialized parameter.
         temporary_type = super().__new__(cls, name, bases, dict_)
 
+        default_param = None  # Purposely None to signify it's not specialized
+
+        # In theory, superclasses could include several specializations. Use the
+        # closest ancestor
+        for base in bases:
+            for base_class in reversed(base.mro()):
+                if isinstance(base_class, IndexedMetaclass):
+                    default_param = base.__param__
+
         # Calls `IndexedMetaclass.__getitem__`
-        return temporary_type[None]
+        return temporary_type[default_param]
 
     def __getitem__(self, param):
         """

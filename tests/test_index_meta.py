@@ -67,3 +67,15 @@ def test_caching():
     assert str(A) ==  str(alias_to_original), (
         'IndexedClass & IndexedMetaclass classes should refer to same type'
     )
+
+
+def test_inherit_param():
+    class A(IndexedClass): ...
+    class B(A): ...
+
+    assert B.__param__ is None
+    assert B[-1].__param__ == -1, 'Subclass failed to specialize'
+
+    class C(A[-1]): ...
+
+    assert C.__param__ == -1, 'Did not inherit param'

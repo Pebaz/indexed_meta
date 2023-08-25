@@ -1,5 +1,9 @@
 PARAM_NAME = '__param__'
 
+def get_param(ref):
+    return getattr(ref, PARAM_NAME)
+
+
 class IndexedMetaclass(type):
     """
     Allows classes to be specialized with a parameter that is unique to that
@@ -42,7 +46,7 @@ class IndexedMetaclass(type):
         for base in bases:
             for base_class in reversed(base.mro()):
                 if isinstance(base_class, IndexedMetaclass):
-                    default_param = getattr(base, PARAM_NAME)
+                    default_param = get_param(base)
 
         # Calls `IndexedMetaclass.__getitem__`
         return temporary_type[default_param]
@@ -82,7 +86,7 @@ class IndexedMetaclass(type):
         return new_class
 
     def __str__(self):
-        param = getattr(self, PARAM_NAME)
+        param = get_param(self)
         return f'{self.__qualname__}[{"" if param is None else param}]'
 
     def __repr__(self):

@@ -1,4 +1,4 @@
-from indexed_meta import IndexedMetaclass, IndexedClass
+from indexed_meta import IndexedMetaclass, IndexedClass, get_param
 
 
 def test_class_registration():
@@ -79,3 +79,12 @@ def test_inherit_param():
     class C(A[-1]): ...
 
     assert C.__param__ == -1, 'Did not inherit param'
+
+
+def test_get_param():
+    class A(IndexedClass): ...
+
+    assert get_param(A) is None
+    assert get_param(A[1]) == 1
+    assert get_param(A[A]) == A
+    assert get_param(A[A[A]]) == A[A]

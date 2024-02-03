@@ -1,4 +1,7 @@
-from indexed_meta import IndexedMetaclass, IndexedClass, get_param
+from indexed_meta import (
+    IndexedMetaclass, IndexedClass, get_param, root_type, is_subclass,
+    is_instance
+)
 
 
 def test_class_registration():
@@ -88,3 +91,45 @@ def test_get_param():
     assert get_param(A[1]) == 1
     assert get_param(A[A]) == A
     assert get_param(A[A[A]]) == A[A]
+
+
+def test_root_type():
+    class A(IndexedClass): ...
+
+    assert root_type(A) == A
+    assert root_type(A[None]) == A
+    assert root_type(A[123]) == A
+
+
+def test_is_subclass():
+    class A(IndexedClass): ...
+    class B(A): ...
+
+    assert is_subclass(B, A)
+    assert is_subclass(B[None], A)
+    assert is_subclass(B[123], A)
+
+    assert is_subclass(B, A[123])
+    assert is_subclass(B[None], A[123])
+    assert is_subclass(B[123], A[123])
+
+    assert is_subclass(B, (A[123], A))
+    assert is_subclass(B[None], (A[123], A))
+    assert is_subclass(B[123], (A[123], A))
+
+
+def test_is_instance():
+    class A(IndexedClass): ...
+    class B(A): ...
+
+    assert is_instance(B(), A)
+    assert is_instance(B[None](), A)
+    assert is_instance(B[123](), A)
+
+    assert is_instance(B(), A[123])
+    assert is_instance(B[None](), A[123])
+    assert is_instance(B[123](), A[123])
+
+    assert is_instance(B(), (A[123], A))
+    assert is_instance(B[None](), (A[123], A))
+    assert is_instance(B[123](), (A[123], A))

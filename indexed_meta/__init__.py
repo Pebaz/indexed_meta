@@ -1,3 +1,5 @@
+from typing import Union
+
 PARAM_NAME = '__param__'
 
 def get_param(ref):
@@ -132,3 +134,42 @@ class IndexedClass(metaclass=IndexedMetaclass):
 
     def __format__(self, _format):
         return str(self)
+
+
+def root_type(ty: type) -> type:
+    "Shorthand for getting the non-parametrized root type."
+    if hasattr(ty, PARAM_NAME):
+        return ty[None]
+    return ty
+
+
+def is_subclass(ty1: type, ty2: Union[type, tuple[type]], /) -> bool:
+    """
+    Normal issubclass won't work since parametrized types are distinct.
+    Equivalent to: `issubclass(root_type(type(foo)), root_type(Bar))`
+    """
+    if not isinstance(ty2, tuple):
+        ty2 = ty2,
+    for typ2 in ty2:
+        if hasattr(ty1, PARAM_NAME) and hasattr(typ2, PARAM_NAME):
+            if issubclass(root_type(ty1), root_type(typ2)):
+                return True
+        elif issubclass(ty1, typ2):
+            return True
+    return False
+
+
+def is_instance(obj: object, ty: Union[type, tuple[type]], /) -> bool:
+    """
+    Normal isinstance won't work since parametrized types are distinct.
+    Equivalent to: `issubclass(root_type(type(foo)), root_type(Bar))`
+    """
+    if not isinstance(ty, tuple):
+        ty = ty,
+    for typ in ty:
+        if hasattr(type(obj), PARAM_NAME) and hasattr(typ, PARAM_NAME):
+            if issubclass(root_type(type(obj)), root_type(typ)):
+                return True
+        elif isinstance(obj, typ):
+            return True
+    return False
